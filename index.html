@@ -4,10 +4,6 @@
   <title>바람이동 시뮬레이터</title>
   <meta charset="UTF-8">
   <style>
-    #gradient {
-      /* background: linear-gradient(rgb(80, 40, 40), rgb(40, 40, 80)); */
-      background: radial-gradient(rgb(80, 40, 40), rgb(40, 40, 80));
-    }
     .layer {
       height: 100vh;
       width: 100vh;
@@ -15,30 +11,50 @@
       right: 0px;
       top: 0px;
     }
+    .range타입 {
+      width: calc(100vw - 100vh - 5px);
+    }
     body {
       background-color: rgb(33, 33, 33);
       color: #FFF;
       margin: 0;
       user-select: none;
     }
-    input {
-      width: calc(100vw - 100vh - 5px);
-    }
   </style>
 </head>
 <body>
-  <div>
-    <div>
-      <div>기압경도력스칼라: <span id="input-value-기압경도력스칼라">0</span></div>
-      <input id="input-range-기압경도력스칼라" type="range" min="0" max="32" value="0" step="0.01">
+  <div style="font-size: 1.3rem;">
+    <div id="기압배치라디오">
+      <span style="color: rgb(200, 200, 200);">
+        <input id="input-radio-E" type='radio' name='기압배치' value='E' checked/>
+        <label for="input-radio-E">평형</label>
+      </span>
+      <span style="color: rgb(100, 100, 255);">
+        <input id="input-radio-L" type='radio' name='기압배치' value='L'/>
+        <label for="input-radio-L">저기압성</label>
+      </span>
+      <span style="color: rgb(255, 100, 100);">
+        <input id="input-radio-H" type='radio' name='기압배치' value='H'/>
+        <label for="input-radio-H">고기압성</label>
+      </span>
     </div>
-    <div>
-      <div>마찰계수: <span id="input-value-마찰계수">0</span></div>
-      <input id="input-range-마찰계수" type="range" min="0" max="1" value="0" step="0.001">
-    </div>
-    <div>
-      <div>전향력성분: <span id="input-value-전향력성분">0</span></div>
-      <input id="input-range-전향력성분" type="range" min="0" max="1" value="0" step="0.001">
+    <div id="래인지">
+      <div>
+        <div>처리횟수(dt = 0.0001): <span id="input-value-처리횟수">1000</span></div>
+        <input id="input-range-처리횟수" class="range타입" type="range" min="1" max="10000" value="1000" step="1" style="accent-color:rgb(200, 200, 200)">
+      </div>
+      <div style="color: rgb(100, 100, 255);">
+        <div>기압경도력스칼라: <span id="input-value-기압경도력스칼라">0</span></div>
+        <input id="input-range-기압경도력스칼라" class="range타입" type="range" min="0" max="100" value="0" step="0.01" style="accent-color:rgb(0, 0, 255)">
+      </div>
+      <div style="color: rgb(255, 100, 100);">
+        <div>마찰계수: <span id="input-value-마찰계수">0</span></div>
+        <input id="input-range-마찰계수" class="range타입" type="range" min="0" max="1" value="0" step="0.001" style="accent-color:rgb(255, 0, 0)">
+      </div>
+      <div style="color: rgb(100, 255, 100);">
+        <div>전향력성분: <span id="input-value-전향력성분">0</span></div>
+        <input id="input-range-전향력성분" class="range타입" type="range" min="0" max="1" value="0" step="0.001" style="accent-color:rgb(0, 255, 0)">
+      </div>
     </div>
   </div>
   <div>

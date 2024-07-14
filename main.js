@@ -1,16 +1,30 @@
 const x = 0, y = 1, dt = 0.0001;
-let 위치 = [500,1000], 속도 = [0,0], 기압경도력스칼라 = 0, 마찰계수 = 0, 전향력성분 = 0;
+let 위치 = [500, 500], 속도 = [0,0], 기압경도력스칼라 = 0, 마찰계수 = 0, 전향력성분 = 0, 처리횟수 = 1000;
 function $(id) {
   return document.getElementById(id);
 }
 /** @type {HTMLCanvasElement} */
 const layer = $('layer'), ctx = layer.getContext('2d');
 
+layer.addEventListener(
+  'click', e => {
+    const 화면계수 = 1000 / innerHeight;
+    위치 = [e.offsetX * 화면계수, e.offsetY * 화면계수];
+  }
+)
+
 const span들 = {
+  처리횟수: $("input-value-처리횟수"),
   기압경도력스칼라: $("input-value-기압경도력스칼라"),
   마찰계수: $("input-value-마찰계수"),
   전향력성분: $("input-value-전향력성분")
 }
+$('input-range-처리횟수').addEventListener(
+  "change", e => {
+    span들.처리횟수.innerText = e.target.value;
+    처리횟수 = e.target.value;
+  }
+)
 $('input-range-기압경도력스칼라').addEventListener(
   "change", e => {
     span들.기압경도력스칼라.innerText = e.target.value;
@@ -30,38 +44,40 @@ $('input-range-전향력성분').addEventListener(
   }
 )
 
-requestFrame();
-
+let 기압배치모드 = 'E';
 function requestFrame() {
   let 기압경도력 = [0,0],
     마찰력 = [0,0],
     전향력 = [0,0],
     가속도 = [0,0]
-  for (let i = 1000; i--;) {
-    기압경도력 = 기갑경도력벡터계산();
+  for (let i = 처리횟수; i--;) {
+    기압경도력 = 기압경도력벡터계산();
     마찰력 = 벡터2에곱하기(속도, -마찰계수);
     전향력 = 벡터2직각계산(벡터2에곱하기(속도, 전향력성분));
-    가속도 = 벡터2에곱하기(벡터2부분합계산([기압경도력, 마찰력, 전향력]), dt);
-    속도 = 벡터2부분합계산([속도, 가속도]);
+    가속도 = 벡터2부분합계산([기압경도력, 마찰력, 전향력]);
+    속도 = 벡터2부분합계산([속도, 벡터2에곱하기(가속도, dt)]);
     위치 = 벡터2부분합계산([위치, 벡터2에곱하기(속도, dt)]);
+    if (기압배치모드 == 'E') {
+      위치[x] %= 1000;
+      위치[y] = (위치[y] + 1000) % 1000;
+    }
   }
 
   ctx.clearRect(0,0,1000,1000)
   물체그리기();
-  벡터그리기(속도,'rgb(0, 0, 255)');
-  벡터그리기(가속도,'rgb(0, 0, 255)');
+  벡터그리기(속도,'rgb(160, 0, 255)');
   벡터그리기(기압경도력,'rgb(0, 0, 255)');
   벡터그리기(마찰력,'rgb(255, 0, 0)');
   벡터그리기(전향력,'rgb(0, 255, 0)');
+  벡터그리기(가속도,'rgb(255, 255, 255)');
 
   requestAnimationFrame(requestFrame);
 }
 
-
 function 물체그리기() {
   ctx.beginPath();
-    ctx.fillStyle = 'rgb(255, 255, 255)';
-    ctx.arc(위치[x], 위치[y], 10, 0, 2*Math.PI);
+    ctx.fillStyle = 'rgb(0, 0, 0)';
+    ctx.arc(위치[x], 위치[y], 5, 0, 2*Math.PI);
     ctx.fill();
 }
 /**
@@ -77,17 +93,53 @@ function 벡터그리기(벡터, 색) {
     ctx.stroke();
 }
 
+function 저기압성기압경도력벡터계산() {
+  return 원형기압경도력계산(기압경도력스칼라);
+}
+function 고기압성기압경도력벡터계산() {
+  return 원형기압경도력계산(-기압경도력스칼라);
+}
+function 평형기압경도력벡터계산() {
+  return [0,-기압경도력스칼라];
+}
 /**
- * @param {Number[]} 위치
+ * @param {Number} 스칼라
  */
-function 기갑경도력벡터계산() {
+function 원형기압경도력계산(스칼라) {
   const 위치거리 = 빗변계산([500,500], 위치);
   if (위치거리 == 0) {
     return [0,0];
   }
-  const 힘 = 기압경도력스칼라 / 위치거리;
+  const 힘 = 스칼라 / 위치거리;
   return [(500-위치[x])*힘, (500-위치[y])*힘];
 }
+let 기압경도력벡터계산 = 평형기압경도력벡터계산;
+requestFrame();
+
+const 배경그라데이션 = $('gradient');
+배경그라데이션.style = 'background: linear-gradient(rgb(80, 40, 40), rgb(40, 40, 80));';
+
+$('input-radio-E').addEventListener(
+  'click', e => {
+    기압경도력벡터계산 = 평형기압경도력벡터계산;
+    배경그라데이션.style = 'background: linear-gradient(rgb(80, 40, 40), rgb(40, 40, 80));';
+    기압배치모드 = e.target.value;
+  }
+)
+$('input-radio-L').addEventListener(
+  'click', e => {
+    기압경도력벡터계산 = 저기압성기압경도력벡터계산;
+    배경그라데이션.style = 'background: radial-gradient(rgb(80, 40, 40), rgb(40, 40, 80));';
+    기압배치모드 = e.target.value;
+  }
+)
+$('input-radio-H').addEventListener(
+  'click', e => {
+    기압경도력벡터계산 = 고기압성기압경도력벡터계산;
+    배경그라데이션.style = 'background: radial-gradient(rgb(40, 40, 80), rgb(80, 40, 40));';
+    기압배치모드 = e.target.value;
+  }
+)
 
 /**
  * @param {Number[]} a
@@ -118,12 +170,12 @@ function 벡터2에곱하기(vector2, 계수) {
  * @param {Number[]} vector2
  */
 function 벡터2직각계산(vector2) {
-  return [vector2[y], -vector2[x]];
+  return [-vector2[y], vector2[x]];
 }
 /**
- * @param {Number} angularVelocity
- * @param {Number} latitude
+ * @param {Number} 자전각속도
+ * @param {Number} 위도
  */
-function 크리올리효과계산(angularVelocity, latitude) {
-  return 2 * angularVelocity * Math.sin(latitude);
+function 크리올리효과계산(자전각속도, 위도) {
+  return 2 * 자전각속도 * Math.sin(위도);
 }
